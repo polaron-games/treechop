@@ -87,7 +87,7 @@ public class ClientSettingsScreen extends Screen {
         );
 
         int titleTop = optionsList.getY() - SPACE_ABOVE_AND_BELOW_LIST - GUIUtil.TEXT_LINE_HEIGHT;
-        addRenderableWidget(new StringWidget(0, titleTop, this.width, TEXT_HEIGHT, this.title, this.font).alignCenter());
+        addRenderableWidget(new StringWidget(0, titleTop, this.width, TEXT_HEIGHT, this.title, this.font));
     }
 
     private void placeOptionsList() {

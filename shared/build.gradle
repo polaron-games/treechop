@@ -1,13 +1,22 @@
 plugins {
-    id "org.spongepowered.gradle.vanilla"
+    id "fabric-loom"
+}
+
+repositories {
+    maven { url = "https://maven.fabricmc.net" }
+    maven { url = "https://maven.parchmentmc.org" }
+    maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" }
 }
 
 dependencies {
+    minecraft "com.mojang:minecraft:$minecraft_version"
+    mappings loom.layered() {
+        officialMojangMappings()
+        parchment("org.parchmentmc.data:parchment-$minecraft_version:$parchment_mappings_version@zip")
+    }
+    modCompileOnly "net.fabricmc:fabric-loader:$fabric_loader_version"
+
     compileOnly "org.spongepowered:mixin:0.8.5"
     compileOnly "fuzs.forgeconfigapiport:forgeconfigapiport-common-neoforgeapi:$forgeconfigapiport_version"
     compileOnly project(":tuber")
-}
-
-minecraft {
-    version(minecraft_version)
 }

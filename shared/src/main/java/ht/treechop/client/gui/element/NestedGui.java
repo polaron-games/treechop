@@ -5,6 +5,7 @@ import ht.treechop.client.gui.util.ScreenBox;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nullable;
@@ -86,11 +87,11 @@ public abstract class NestedGui extends AbstractWidget implements ContainerEvent
     }
 
     @Override
-    public boolean mouseClicked(double x, double y, int button) {
+    public boolean mouseClicked(MouseButtonEvent click, boolean doubled) {
         for(GuiEventListener guieventlistener : this.children()) {
-            if (guieventlistener.mouseClicked(x, y, button)) {
+            if (guieventlistener.mouseClicked(click, doubled)) {
                 this.setFocused(guieventlistener);
-                if (button == 0) {
+                if (click.button() == 0) {
                     this.setDragging(true);
                 }
 
@@ -102,9 +103,9 @@ public abstract class NestedGui extends AbstractWidget implements ContainerEvent
     }
 
     @Override
-    public boolean mouseReleased(double x, double y, int button) {
+    public boolean mouseReleased(MouseButtonEvent click) {
         this.setDragging(false);
-        return this.getChildAt(x, y).filter((child) -> child.mouseReleased(x, y, button)).isPresent();
+        return this.getChildAt(click.x(), click.y()).filter((child) -> child.mouseReleased(click)).isPresent();
     }
 
     public void expand(int width) {}

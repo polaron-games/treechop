@@ -5,37 +5,39 @@ import ht.treechop.common.chop.ChopUtil;
 import ht.treechop.common.properties.ChoppedLogShape;
 import ht.tuber.math.Vector3;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockModelShaper;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.block.model.ItemOverrides;
-import net.minecraft.client.renderer.block.model.ItemTransforms;
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public abstract class ChoppedLogBakedModel implements UnbakedModel, BakedModel {
+public abstract class ChoppedLogBakedModel implements BlockStateModel {
     private static TextureAtlasSprite defaultSprite;
-    protected static final ResourceLocation DEFAULT_TEXTURE_RESOURCE = ResourceLocation.withDefaultNamespace("block/stripped_oak_log");
-    public static final RenderType RENDER_TYPE = RenderType.cutout(); // Don't use translucent, looks nuts with shaders
 
     public static void setDefaultSprite(TextureAtlasSprite defaultSprite) {
         ChoppedLogBakedModel.defaultSprite = defaultSprite;
+    }
+
+    @Override
+    public @NotNull TextureAtlasSprite particleIcon() {
+        return getDefaultSprite();
+    }
+
+    @Override
+    public void collectParts(RandomSource random, List<BlockModelPart> parts) {
+        // Subclasses handle this
     }
 
     private static BlockState getStrippedNeighbor(BlockAndTintGetter level, BlockPos pos, Direction direction) {
@@ -44,7 +46,7 @@ public abstract class ChoppedLogBakedModel implements UnbakedModel, BakedModel {
     }
 
     protected static Map<Direction, BlockState> getStrippedNeighbors(BlockAndTintGetter level, BlockPos pos, ChoppedLogBlock.MyEntity entity) {
-        if (entity.getOriginalState().isSolidRender(level, pos)) {
+        if (entity.getOriginalState().isSolidRender()) {
             return entity.streamSolidSides(level, pos).collect(Collectors.toMap(
                     side -> side,
                     side -> getStrippedNeighbor(level, pos, side)
@@ -55,72 +57,23 @@ public abstract class ChoppedLogBakedModel implements UnbakedModel, BakedModel {
     }
 
     protected List<BakedQuad> getBlockQuads(BlockState blockState, Direction side, RandomSource rand) {
-        BakedModel model = getBlockModel(blockState);
-        return model.getQuads(blockState, side, rand);
+        BlockStateModel model = getBlockModel(blockState);
+        List<BlockModelPart> parts = new ArrayList<>();
+        model.collectParts(rand, parts);
+        return parts.stream()
+                .flatMap(part -> part.getQuads(side).stream())
+                .collect(Collectors.toList());
     }
 
     @NotNull
-    public static BakedModel getBlockModel(BlockState blockState) {
-        ModelResourceLocation modelLocation = BlockModelShaper.stateToModelLocation(blockState);
-        return Minecraft.getInstance().getModelManager().getModel(modelLocation);
-    }
-
-    @Override
-    public @NotNull Collection<ResourceLocation> getDependencies() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public void resolveParents(Function<ResourceLocation, UnbakedModel> function) {
-    }
-
-    @Override
-    public BakedModel bake(@NotNull ModelBaker modelBakery, Function<Material, TextureAtlasSprite> textureGetter, @NotNull ModelState modelState) {
-        defaultSprite = textureGetter.apply(new Material(TextureAtlas.LOCATION_BLOCKS, DEFAULT_TEXTURE_RESOURCE));
-        return this;
-    }
-
-    @Override
-    public @NotNull List<BakedQuad> getQuads(@Nullable BlockState blockState, @Nullable Direction direction, @NotNull RandomSource randomSource) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public boolean useAmbientOcclusion() {
-        return true;
-    }
-
-    @Override
-    public boolean isGui3d() {
-        return false;
-    }
-
-    @Override
-    public boolean usesBlockLight() {
-        return true;
-    }
-
-    @Override
-    public boolean isCustomRenderer() {
-        return false;
-    }
-
-    @Override
-    public @NotNull TextureAtlasSprite getParticleIcon() {
-        return getDefaultSprite();
-    }
-
-    @Override
-    public @NotNull ItemTransforms getTransforms() {
-        return ItemTransforms.NO_TRANSFORMS;
-    }
-
-    @Override
-    public @NotNull ItemOverrides getOverrides() {
-        return ItemOverrides.EMPTY;
+    public static BlockStateModel getBlockModel(BlockState blockState) {
+        return Minecraft.getInstance().getBlockRenderer().getBlockModelShaper().getBlockModel(blockState);
     }
 
     protected TextureAtlasSprite getDefaultSprite() {
+        if (defaultSprite == null) {
+            defaultSprite = getBlockModel(net.minecraft.world.level.block.Blocks.STRIPPED_OAK_LOG.defaultBlockState()).particleIcon();
+        }
         return defaultSprite;
     }
 
@@ -141,13 +94,16 @@ public abstract class ChoppedLogBakedModel implements UnbakedModel, BakedModel {
                             Direction side = entry.getKey();
                             BlockState strippedNeighbor = entry.getValue();
 
-                            Vec3i normal = side.getNormal().multiply(16);
+                            Vec3i normal = side.getUnitVec3i().multiply(16);
                             Vector3 transform = new Vector3(normal.getX(), normal.getY(), normal.getZ());
 
-                            return getBlockModel(strippedNeighbor).getQuads(strippedNeighbor, side.getOpposite(), random).stream().map(quad -> ModelUtil.translateQuad(quad, transform));
+                            List<BlockModelPart> parts = new ArrayList<>();
+                            getBlockModel(strippedNeighbor).collectParts(random, parts);
+                            return parts.stream()
+                                    .flatMap(part -> part.getQuads(side.getOpposite()).stream())
+                                    .map(quad -> ModelUtil.translateQuad(quad, transform));
                         }
                 )
         ).filter(Objects::nonNull);
     }
-
 }

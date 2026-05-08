@@ -31,8 +31,6 @@ public class ToggleWidget extends AbstractWidget {
     public void renderWidget(GuiGraphics gui, int mouseX, int mouseY, float partialTicks) {
         this.active = !stateSupplier.get().isLocked;
 
-        Sprite.setRenderState(this.alpha);
-
         final EnumMap<State, Sprite> spriteForState = new EnumMap<State, Sprite>(Stream.of(
                 Pair.of(State.OFF, Sprite.TOGGLE_BUTTON_OFF),
                 Pair.of(State.ON, Sprite.TOGGLE_BUTTON_ON),

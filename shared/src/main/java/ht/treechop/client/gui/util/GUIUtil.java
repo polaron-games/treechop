@@ -4,6 +4,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 
@@ -42,8 +44,9 @@ public class GUIUtil {
         if (screen != null && tooltipText != null) {
             int maxWidth = Math.max(Math.max(tooltipX, screen.width - tooltipX) - TOOLTIP_WIDTH_BUFFER, TOOLTIP_WIDTH_BUFFER);
             Font font = Minecraft.getInstance().font;
-            List<FormattedCharSequence> splitText = font.split(tooltipText, maxWidth);
-            gui.renderTooltip(font, splitText, tooltipX, tooltipY);
+            List<ClientTooltipComponent> splitText = font.split(tooltipText, maxWidth).stream()
+                    .map(ClientTooltipComponent::create).toList();
+            gui.renderTooltip(font, splitText, tooltipX, tooltipY, DefaultTooltipPositioner.INSTANCE, null);
         }
 
         tooltipText = null;

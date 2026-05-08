@@ -83,10 +83,10 @@ public class WailaUtil {
                     tree.streamLogs()
                             .collect(Collectors.groupingBy((BlockPos pos2) -> {
                                 BlockState state = level.getBlockState(pos2);
-                                return state.getBlock().getCloneItemStack(level, pos2, state).getItem();
+                                return state.getBlock().asItem();
                             }, Collectors.counting()))
                             .forEach((item, count) -> {
-                                ItemStack stack = item.getDefaultInstance();
+                                ItemStack stack = new ItemStack(item);
                                 stack.setCount(count.intValue());
                                 addTreeBlockStack.accept(stack);
                             });

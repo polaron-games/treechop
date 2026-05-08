@@ -1,7 +1,11 @@
 package ht.treechop.client.gui.screen;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.pipeline.BlendFunction;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.platform.DepthTestFunction;
+import com.mojang.blaze3d.shaders.UniformType;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import ht.treechop.TreeChop;
 import ht.treechop.TreeChopException;
 import ht.treechop.client.Client;
@@ -23,6 +27,27 @@ public class ChopIndicator {
 
     private static final double IMAGE_SCALE = 1.0;
 
+    // Lazy-initialized: mirrors GUI_TEXTURED but with INVERT blend so the axe icon XOR-inverts against any background.
+    // Built from scratch to avoid accessing private RenderPipelines snippets.
+    private static RenderPipeline guiTexturedInvert;
+
+    private static RenderPipeline getGuiTexturedInvert() {
+        if (guiTexturedInvert == null) {
+            guiTexturedInvert = RenderPipeline.builder()
+                    .withUniform("DynamicTransforms", UniformType.UNIFORM_BUFFER)
+                    .withUniform("Projection", UniformType.UNIFORM_BUFFER)
+                    .withVertexShader("core/position_tex_color")
+                    .withFragmentShader("core/position_tex_color")
+                    .withSampler("Sampler0")
+                    .withBlend(BlendFunction.INVERT)
+                    .withVertexFormat(DefaultVertexFormat.POSITION_TEX_COLOR, VertexFormat.Mode.QUADS)
+                    .withDepthTestFunction(DepthTestFunction.NO_DEPTH_TEST)
+                    .withLocation("treechop:pipeline/gui_textured_invert")
+                    .build();
+        }
+        return guiTexturedInvert;
+    }
+
     public static void render(GuiGraphics gui, int windowWidth, int windowHeight) {
         Minecraft minecraft = Minecraft.getInstance();
         HitResult mouseOver = minecraft.hitResult;
@@ -37,14 +62,6 @@ public class ChopIndicator {
             ) {
                 BlockPos blockPos = ((BlockHitResult) mouseOver).getBlockPos();
                 if (blockCanBeChopped(blockPos)) {
-                    RenderSystem.enableBlend();
-                    RenderSystem.blendFuncSeparate(
-                            GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR,
-                            GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR,
-                            GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO
-                    );
-                    RenderSystem.setShaderTexture(0, Sprite.TEXTURE_PATH);
-
                     boolean mirror = player.getMainArm() == HumanoidArm.LEFT;
                     int indicatorCenterX = windowWidth / 2 + ConfigHandler.CLIENT.indicatorXOffset.get() * (mirror ? -1 : 1);
                     int indicatorCenterY = windowHeight / 2 + ConfigHandler.CLIENT.indicatorYOffset.get();
@@ -55,15 +72,13 @@ public class ChopIndicator {
 
                     sprite.blit(
                             gui,
+                            getGuiTexturedInvert(),
                             indicatorCenterX - imageWidth / 2,
                             indicatorCenterY - imageHeight / 2,
                             imageWidth,
                             imageHeight,
                             mirror
                     );
-
-                    RenderSystem.defaultBlendFunc();
-                    RenderSystem.disableBlend();
                 }
             }
         } catch (Exception e) {

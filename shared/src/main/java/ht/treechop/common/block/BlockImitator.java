@@ -5,15 +5,11 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.NotNull;
-
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
@@ -37,15 +33,9 @@ public abstract class BlockImitator extends Block {
     }
 
     @Override
-    public void fallOn(Level level, BlockState blockState, BlockPos pos, Entity entity, float speed) {
+    public void fallOn(Level level, BlockState blockState, BlockPos pos, Entity entity, double speed) {
         BlockState imitatedBlockState = getImitatedBlockState(level, pos);
         imitatedBlockState.getBlock().fallOn(level, imitatedBlockState, pos, entity, speed);
-    }
-
-    @Override
-    public @NotNull ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState blockState) {
-        BlockState imitatedBlockState = getImitatedBlockState(level, pos);
-        return imitatedBlockState.getBlock().getCloneItemStack(level, pos, imitatedBlockState);
     }
 
     @Override
@@ -55,8 +45,8 @@ public abstract class BlockImitator extends Block {
     }
 
     @Override
-    public int getLightBlock(BlockState blockState, BlockGetter level, BlockPos pos) {
-        return super.getLightBlock(blockState, level, pos);
+    public int getLightBlock(BlockState blockState) {
+        return super.getLightBlock(blockState);
     }
 
     @Override
@@ -65,8 +55,9 @@ public abstract class BlockImitator extends Block {
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState blockState, Level level, BlockPos pos) {
-        return getImitatedBlockState(level, pos).getAnalogOutputSignal(level, pos);
+    public int getAnalogOutputSignal(BlockState blockState, Level level, BlockPos pos, Direction direction) {
+        BlockState imitatedBlockState = getImitatedBlockState(level, pos);
+        return imitatedBlockState.getAnalogOutputSignal(level, pos, direction);
     }
 
     @Override

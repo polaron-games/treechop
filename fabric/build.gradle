@@ -42,13 +42,13 @@ dependencies {
     implementation project(":tuber")
 
     modApi "fuzs.forgeconfigapiport:forgeconfigapiport-fabric:$forgeconfigapiport_version"
-    modApi "com.terraformersmc:modmenu:11.0.3"
+    modApi "com.terraformersmc:modmenu:17.0.0-beta.1"
 
-    modCompileOnly "mcp.mobius.waila:wthit-api:fabric-12.4.2"
-    modRuntimeOnly "mcp.mobius.waila:wthit:fabric-12.4.2"
-    modRuntimeOnly "lol.bai:badpackets:fabric-0.8.1"
+    modCompileOnly "mcp.mobius.waila:wthit-api:fabric-18.2.2"
+    modRuntimeOnly "mcp.mobius.waila:wthit:fabric-18.2.2"
+    modRuntimeOnly "lol.bai:badpackets:fabric-0.11.2"
 
-    modCompileOnly "curse.maven:jade-324717:5571122"
+    modCompileOnly "curse.maven:jade-324717:7676480"
 //    modRuntimeOnly "curse.maven:jade-324717:5571122"
 
 //    modRuntimeOnly "maven.modrinth:sodium:mc1.19.3-0.4.9" // Doesn't wanna work in IntelliJ
@@ -62,7 +62,7 @@ dependencies {
 //    modRuntimeOnly "curse.maven:bclib-495191:4677965"
 //    modRuntimeOnly "curse.maven:betterend-413596:4677967"
 
-    modCompileOnly "com.terraformersmc.terraform-api:terraform-wood-api-v1:10.0.0"
+    modCompileOnly "com.terraformersmc.terraform-api:terraform-wood-api-v1:16.0.0"
 
 }
 

@@ -1,9 +1,9 @@
 package ht.treechop.client.gui.util;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.resources.Identifier;
 
 public enum Sprite {
     CHOP_INDICATOR(0, 0, 20, 20),
@@ -22,8 +22,8 @@ public enum Sprite {
     HIGHLIGHTED_PAGE_TWO(32, 100, 32, 20),
     ;
 
-    public static final ResourceLocation TEXTURE_PATH =
-            ResourceLocation.fromNamespaceAndPath("treechop", "textures/gui/widgets.png");
+    public static final Identifier TEXTURE_PATH =
+            Identifier.fromNamespaceAndPath("treechop", "textures/gui/widgets.png");
     public static final int TEXTURE_WIDTH = 64;
     public static final int TEXTURE_HEIGHT = 120;
 
@@ -39,16 +39,6 @@ public enum Sprite {
         this.height = height;
     }
 
-    public static void setRenderState(float alpha) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, Sprite.TEXTURE_PATH);
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);
-
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.enableDepthTest();
-    }
-
     public void blit(GuiGraphics gui, int x, int y) {
         blit(gui, x, y, width, height);
     }
@@ -58,9 +48,13 @@ public enum Sprite {
     }
 
     public void blit(GuiGraphics gui, int x, int y, int width, int height, boolean mirror) {
+        blit(gui, RenderPipelines.GUI_TEXTURED, x, y, width, height, mirror);
+    }
+
+    public void blit(GuiGraphics gui, RenderPipeline pipeline, int x, int y, int width, int height, boolean mirror) {
         float u = mirror ? this.u + this.width : this.u;
         int uw = mirror ? -this.width : this.width;
-        gui.blit(TEXTURE_PATH, x, y, width, height, u, v, uw, this.height, TEXTURE_WIDTH, TEXTURE_HEIGHT);
+        gui.blit(pipeline, TEXTURE_PATH, x, y, u, (float) this.v, width, height, uw, this.height, TEXTURE_WIDTH, TEXTURE_HEIGHT);
     }
 
 }

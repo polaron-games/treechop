@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class KeyBindings {
-    public static final String CATEGORY = "HT's TreeChop";
+    public static final KeyMapping.Category CATEGORY = KeyMapping.Category.register(TreeChop.resource("key.treechop"));
 
     public static final List<ActionableKeyBinding> allKeyBindings = new LinkedList<>();
 
@@ -37,7 +37,7 @@ public class KeyBindings {
     }
 
     static InputConstants.Key getKey(int key) {
-        return InputConstants.getKey(key, 0);
+        return InputConstants.Type.KEYSYM.getOrCreate(key);
     }
 
     public static class ActionableKeyBinding extends KeyMapping {

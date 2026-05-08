@@ -17,7 +17,7 @@ import net.minecraft.world.item.ItemStack;
 public class ServerCommands {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("treechop")
-                .requires(source -> source.hasPermission(2));
+                .requires(source -> Commands.LEVEL_GAMEMASTERS.check(source.permissions()));
 
         builder.then(Commands.literal("chop")
                 .then(Commands.argument("chopPos", BlockPosArgument.blockPos())
