@@ -12,7 +12,9 @@ import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
@@ -86,6 +88,7 @@ public class WailaUtil {
                                 return state.getBlock().asItem();
                             }, Collectors.counting()))
                             .forEach((item, count) -> {
+                                if (item == Items.AIR) return;
                                 ItemStack stack = new ItemStack(item);
                                 stack.setCount(count.intValue());
                                 addTreeBlockStack.accept(stack);
